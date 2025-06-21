@@ -1,5 +1,6 @@
 package com.franchise_network.franchise.infrastructure.entrypoints;
 
+import com.franchise_network.franchise.infrastructure.entrypoints.handler.BranchHandler;
 import com.franchise_network.franchise.infrastructure.entrypoints.handler.FranchiseHandler;
 
 import org.springframework.context.annotation.Bean;
@@ -14,8 +15,10 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class RouterRest {
 
     @Bean
-    public RouterFunction<ServerResponse> routerFunction(FranchiseHandler handler) {
-        return route(POST("/api/v1/register-franchise"), handler::createFranchise);
+    public RouterFunction<ServerResponse> routerFunction(FranchiseHandler handler,
+                                                         BranchHandler branchHandler) {
+        return route(POST("/api/v1/register-franchise"), handler::createFranchise)
+                .andRoute(POST("/api/v1/register-branch"), branchHandler::addBranchToFranchise);
     }
 
 }
