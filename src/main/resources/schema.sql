@@ -1,0 +1,29 @@
+
+CREATE TABLE IF NOT EXISTS franchise (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS branch (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    franchise_id BIGINT NOT NULL,
+    FOREIGN KEY (franchise_id) REFERENCES franchise(id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS product (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS branch_product (
+    branch_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    stock INT NOT NULL CHECK (stock >= 0),
+    PRIMARY KEY (branch_id, product_id),
+    FOREIGN KEY (branch_id) REFERENCES branch(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
+);
