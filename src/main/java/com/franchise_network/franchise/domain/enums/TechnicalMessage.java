@@ -10,7 +10,10 @@ public enum TechnicalMessage {
     INTERNAL_ERROR("500","Something went wrong, please try again", ""),
     INVALID_FRANCHISE_NAME("400", "Invalid franchise name. Must not be empty, unique, and max 100 chars.", "name"),
     FRANCHISE_ALREADY_EXISTS("409", "Franchise name already exists.", "name"),
-    FRANCHISE_CREATED("201", "Franchise created successfully.", "");
+    FRANCHISE_CREATED("201", "Franchise created successfully.", ""),
+    INVALID_BRANCH_NAME("400", "Invalid branch name. Must not be empty, and max 100 chars.", "name"),
+    FRANCHISE_NOT_FOUND("404", "Franchise not found.", "id"),
+    BRANCH_ADDED("201", "Branch added to franchise successfully.", "");
 
     private final String code;
     private final String message;
