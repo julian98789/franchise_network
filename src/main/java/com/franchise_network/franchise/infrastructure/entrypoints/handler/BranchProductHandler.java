@@ -7,6 +7,7 @@ import com.franchise_network.franchise.domain.exceptions.TechnicalException;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.BranchProductDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IBranchProductMapper;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.APIResponse;
+import com.franchise_network.franchise.infrastructure.entrypoints.util.Constants;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.ErrorDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.List;
+
 
 @Component
 @RequiredArgsConstructor
@@ -62,6 +64,42 @@ public class BranchProductHandler {
                                     .build()));
                 });
     }
+
+    public Mono<ServerResponse> removeProductFromBranch(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_BRANCH_ID));
+        Long productId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_PRODUCT_ID));
+
+        return service.removeProductFromBranch(branchId, productId)
+                .doOnSuccess(v -> log.info("Product removed from branch successfully"))
+                .then(ServerResponse.ok().bodyValue(TechnicalMessage.PRODUCT_REMOVED_FROM_BRANCH.getMessage()))
+                .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        ex.getTechnicalMessage(),
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(TechnicalException.class, ex -> buildErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        TechnicalMessage.INTERNAL_ERROR,
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(ex -> {
+                    log.error("Unexpected error occurred", ex);
+                    return buildErrorResponse(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            TechnicalMessage.INTERNAL_ERROR,
+                            List.of(ErrorDTO.builder()
+                                    .code(TechnicalMessage.INTERNAL_ERROR.getCode())
+                                    .message(TechnicalMessage.INTERNAL_ERROR.getMessage())
+                                    .build()));
+                });
+    }
+
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, TechnicalMessage error, List<ErrorDTO> errors) {
         APIResponse apiErrorResponse = APIResponse.builder()

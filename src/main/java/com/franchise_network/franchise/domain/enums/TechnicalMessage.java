@@ -19,7 +19,10 @@ public enum TechnicalMessage {
     PRODUCT_ASSIGNED_TO_BRANCH("201", "Product assigned to branch successfully.", ""),
     PRODUCT_NOT_FOUND("404", "Product not found.", "id"),
     BRANCH_NOT_FOUND("404", "Branch not found.", "id"),
-    PRODUCT_ALREADY_ASSIGNED("409", "Product is already assigned to this branch.", "productId");
+    PRODUCT_ALREADY_ASSIGNED("409", "Product is already assigned to this branch.", "productId"),
+    PRODUCT_REMOVED_FROM_BRANCH("200", "Product successfully removed from the branch.", ""),
+    PRODUCT_NOT_FOUND_IN_BRANCH("404", "The product is not assigned to this branch.", "productId");
+
 
     private final String code;
     private final String message;
