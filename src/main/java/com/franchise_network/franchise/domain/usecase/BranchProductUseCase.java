@@ -33,6 +33,22 @@ public class BranchProductUseCase implements IBranchProductServicePort {
                 .then(branchProductPersistencePort.save(branchProduct));
     }
 
+    @Override
+    public Mono<Void> removeProductFromBranch(Long branchId, Long productId) {
+        return validateBranchProductExists(branchId, productId)
+                .then(branchProductPersistencePort.deleteByBranchIdAndProductId(branchId, productId));
+    }
+
+    private Mono<Void> validateBranchProductExists(Long branchId, Long productId) {
+        return branchProductPersistencePort.existsByBranchIdAndProductId(branchId, productId)
+                .flatMap(exists -> {
+                    if (Boolean.FALSE.equals(exists)) {
+                        return Mono.error(new BusinessException(TechnicalMessage.PRODUCT_NOT_FOUND_IN_BRANCH));
+                    }
+                    return Mono.empty();
+                });
+    }
+
     private Mono<Void> validateBranchExists(Long branchId) {
         return branchPersistencePort.existsById(branchId)
                 .flatMap(exists -> {
