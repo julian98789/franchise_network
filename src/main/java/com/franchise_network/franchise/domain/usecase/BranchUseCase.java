@@ -13,23 +13,54 @@ public class BranchUseCase implements IBranchServicePort {
     private final IBranchPersistencePort persistencePort;
     private final IFranchisePersistencePort franchisePersistencePort;
 
-    public BranchUseCase(IBranchPersistencePort persistencePort, IFranchisePersistencePort franchisePersistencePort) {
+    public BranchUseCase(IBranchPersistencePort persistencePort,
+                         IFranchisePersistencePort franchisePersistencePort) {
         this.persistencePort = persistencePort;
         this.franchisePersistencePort = franchisePersistencePort;
     }
 
-    @Override
     public Mono<Branch> addBranchToFranchise(Branch branch) {
-        if (branch.name() == null || branch.name().isBlank() || branch.name().length() > 100) {
-            return Mono.error(new BusinessException(TechnicalMessage.INVALID_BRANCH_NAME));
-        }
-
-        return franchisePersistencePort.existsById(branch.franchiseId())
+        return validateBranchName(branch.name())
+                .then(validateFranchiseId(branch.franchiseId()))
+                .flatMap(validFranchiseId ->
+                        checkBranchNameNotExists(branch.name(), validFranchiseId)
+                                .then(franchisePersistencePort.existsById(validFranchiseId)
+                                        .flatMap(exists -> {
+                                            if (Boolean.FALSE.equals(exists)) {
+                                                return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_NOT_FOUND));
+                                            }
+                                            return persistencePort.save(branch);
+                                        }))
+                );
+    }
+    private Mono<Void> checkBranchNameNotExists(String name, Long franchiseId) {
+        return persistencePort.existsByNameAndFranchiseId(name, franchiseId)
                 .flatMap(exists -> {
-                    if (!exists) {
-                        return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_NOT_FOUND));
+                    if (Boolean.TRUE.equals(exists)) {
+                        return Mono.error(new BusinessException(TechnicalMessage.BRANCH_NAME_ALREADY_EXISTS));
                     }
-                    return persistencePort.save(branch);
+                    return Mono.empty();
                 });
     }
+
+
+    private Mono<Long> validateFranchiseId(Long franchiseId) {
+        if (franchiseId == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_ID_REQUIRED));
+        }
+        return Mono.just(franchiseId);
+    }
+
+
+    private Mono<Void> validateBranchName(String name) {
+        if (name == null || name.isBlank() || name.length() > 100) {
+            return Mono.error(new BusinessException(TechnicalMessage.INVALID_BRANCH_NAME));
+        }
+        return Mono.empty();
+    }
+
+
+
+
+
 }

@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductDTO {
-    private String name;
+public class UpdateStockDTO {
+    private Integer stock;
 }
