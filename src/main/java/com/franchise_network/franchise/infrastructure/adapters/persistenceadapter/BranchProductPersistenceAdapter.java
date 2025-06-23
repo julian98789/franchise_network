@@ -25,4 +25,10 @@ public class BranchProductPersistenceAdapter implements IBranchProductPersistenc
     public Mono<Boolean> existsByBranchIdAndProductId(Long branchId, Long productId) {
         return repository.existsByBranchIdAndProductId(branchId, productId);
     }
+
+    @Override
+    public Mono<Void> deleteByBranchIdAndProductId(Long branchId, Long productId) {
+        return repository.deleteByBranchIdAndProductId(branchId, productId);
+    }
+
 }

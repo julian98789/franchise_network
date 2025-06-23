@@ -21,10 +21,17 @@ public class RouterRest {
                                                          BranchHandler branchHandler,
                                                          ProductHandler productHandler,
                                                          BranchProductHandler branchProductHandler) {
-        return route(POST("/api/v1/register-franchise"), franchiseHandler::createFranchise)
-                .andRoute(POST("/api/v1/register-branch"), branchHandler::addBranchToFranchise)
-                .andRoute(POST("/api/v1/register-product"), productHandler::createProduct)
-                .andRoute(POST("/api/v1/assign-product-to-branch"), branchProductHandler::assignProductToBranch);
+        return route(POST("/api/v1/register-franchise"),
+                franchiseHandler::createFranchise)
+                .andRoute(POST("/api/v1/register-branch"),
+                        branchHandler::addBranchToFranchise)
+                .andRoute(POST("/api/v1/register-product"),
+                        productHandler::createProduct)
+                .andRoute(POST("/api/v1/assign-product-to-branch"),
+                        branchProductHandler::assignProductToBranch)
+                .andRoute(DELETE("/api/v1/branches/{branchId}/products/{productId}"),
+                        branchProductHandler::removeProductFromBranch);
+
     }
 
 }
