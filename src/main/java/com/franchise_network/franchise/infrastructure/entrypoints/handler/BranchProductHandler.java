@@ -5,6 +5,7 @@ import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.exceptions.TechnicalException;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.BranchProductDTO;
+import com.franchise_network.franchise.infrastructure.entrypoints.dto.UpdateStockDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IBranchProductMapper;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.APIResponse;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.Constants;
@@ -99,6 +100,43 @@ public class BranchProductHandler {
                                     .build()));
                 });
     }
+
+    public Mono<ServerResponse> updateStock(ServerRequest request) {
+        Long branchId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_BRANCH_ID));
+        Long productId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_PRODUCT_ID));
+
+        return request.bodyToMono(UpdateStockDTO.class)
+                .flatMap(dto -> service.updateStock(branchId, productId, dto.getStock()))
+                .doOnSuccess(v -> log.info("Stock updated successfully"))
+                .then(ServerResponse.ok().bodyValue(TechnicalMessage.STOCK_UPDATED.getMessage()))
+                .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        ex.getTechnicalMessage(),
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(TechnicalException.class, ex -> buildErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        TechnicalMessage.INTERNAL_ERROR,
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(ex -> {
+                    log.error("Unexpected error", ex);
+                    return buildErrorResponse(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            TechnicalMessage.INTERNAL_ERROR,
+                            List.of(ErrorDTO.builder()
+                                    .code(TechnicalMessage.INTERNAL_ERROR.getCode())
+                                    .message(TechnicalMessage.INTERNAL_ERROR.getMessage())
+                                    .build()));
+                });
+    }
+
 
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, TechnicalMessage error, List<ErrorDTO> errors) {
