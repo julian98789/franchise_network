@@ -1,19 +1,18 @@
 package com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("franchise")
+@Table(name = "product")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class FranchiseEntity {
+public class ProductEntity {
+
     @Id
     private Long id;
+
     private String name;
 }
