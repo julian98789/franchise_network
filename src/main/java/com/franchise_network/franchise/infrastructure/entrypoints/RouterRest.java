@@ -30,7 +30,9 @@ public class RouterRest {
                 .andRoute(POST("/api/v1/assign-product-to-branch"),
                         branchProductHandler::assignProductToBranch)
                 .andRoute(DELETE("/api/v1/branches/{branchId}/products/{productId}"),
-                        branchProductHandler::removeProductFromBranch);
+                        branchProductHandler::removeProductFromBranch)
+                .andRoute(PUT("/api/v1/branches/{branchId}/products/{productId}/stock"),
+                        branchProductHandler::updateStock);
 
     }
 

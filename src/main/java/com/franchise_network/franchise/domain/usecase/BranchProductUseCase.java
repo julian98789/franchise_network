@@ -27,10 +27,17 @@ public class BranchProductUseCase implements IBranchProductServicePort {
 
     @Override
     public Mono<BranchProduct> assignProductToBranch(BranchProduct branchProduct) {
-        return validateBranchExists(branchProduct.branchId())
-                .then(validateProductExists(branchProduct.productId()))
-                .then(validateBranchProductNotExists(branchProduct.branchId(), branchProduct.productId()))
-                .then(branchProductPersistencePort.save(branchProduct));
+        return validateBranchId(branchProduct.branchId())
+                .flatMap(validBranchId ->
+                        validateProductId(branchProduct.productId())
+                                .flatMap(validProductId ->
+                                        validateStockValue(branchProduct.stock())
+                                                .then(validateBranchExists(validBranchId))
+                                                .then(validateProductExists(validProductId))
+                                                .then(validateBranchProductNotExists(validBranchId, validProductId))
+                                                .then(branchProductPersistencePort.save(branchProduct))
+                                )
+                );
     }
 
     @Override
@@ -38,6 +45,40 @@ public class BranchProductUseCase implements IBranchProductServicePort {
         return validateBranchProductExists(branchId, productId)
                 .then(branchProductPersistencePort.deleteByBranchIdAndProductId(branchId, productId));
     }
+
+    @Override
+    public Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer newStock) {
+        return validateStockValue(newStock)
+                .then(branchProductPersistencePort.findByBranchIdAndProductId(branchId, productId))
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.PRODUCT_NOT_FOUND_IN_BRANCH)))
+                .flatMap(existing -> branchProductPersistencePort.updateStock(branchId, productId, newStock));
+    }
+
+    private Mono<Void> validateStockValue(Integer stock) {
+        if (stock == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.STOCK_REQUIRED));
+        }
+        if (stock < 0) {
+            return Mono.error(new BusinessException(TechnicalMessage.STOCK_CANNOT_BE_NEGATIVE));
+        }
+
+        return Mono.empty();
+    }
+
+    private Mono<Long> validateBranchId(Long branchId) {
+        if (branchId == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.BRANCH_ID_REQUIRED));
+        }
+        return Mono.just(branchId);
+    }
+
+    private Mono<Long> validateProductId(Long productId) {
+        if (productId == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.PRODUCT_ID_REQUIRED));
+        }
+        return Mono.just(productId);
+    }
+
 
     private Mono<Void> validateBranchProductExists(Long branchId, Long productId) {
         return branchProductPersistencePort.existsByBranchIdAndProductId(branchId, productId)

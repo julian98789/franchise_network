@@ -31,4 +31,16 @@ public class BranchProductPersistenceAdapter implements IBranchProductPersistenc
         return repository.deleteByBranchIdAndProductId(branchId, productId);
     }
 
+    @Override
+    public Mono<BranchProduct> findByBranchIdAndProductId(Long branchId, Long productId) {
+        return repository.findByBranchIdAndProductId(branchId, productId)
+                .map(entityMapper::toModel);
+    }
+
+    @Override
+    public Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer newStock) {
+        return repository.updateStock(branchId, productId, newStock)
+                .thenReturn(new BranchProduct(branchId, productId, newStock));
+    }
+
 }

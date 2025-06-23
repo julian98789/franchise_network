@@ -22,4 +22,9 @@ public class BranchPersistenceAdapter implements IBranchPersistencePort {
     public Mono<Boolean> existsById(Long id) {
         return repository.existsById(id);
     }
+
+    @Override
+    public Mono<Boolean> existsByNameAndFranchiseId(String name, Long franchiseId) {
+        return repository.existsByNameAndFranchiseId(name, franchiseId);
+    }
 }
