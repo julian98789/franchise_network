@@ -4,5 +4,8 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class Constants {
-    public static final String FRANCHISE_ERROR = "Franchise on Technology - [ERROR]";
+
+    public static final String PATH_VARIABLE_BRANCH_ID = "branchId";
+    public static final String PATH_VARIABLE_PRODUCT_ID = "productId";
+
 }
