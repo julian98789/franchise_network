@@ -7,5 +7,6 @@ public class Constants {
 
     public static final String PATH_VARIABLE_BRANCH_ID = "branchId";
     public static final String PATH_VARIABLE_PRODUCT_ID = "productId";
+    public static final String PATH_VARIABLE_FRANCHISE_ID = "franchiseId";
 
 }

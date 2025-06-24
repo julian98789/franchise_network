@@ -139,7 +139,7 @@ public class BranchProductHandler {
     }
 
     public Mono<ServerResponse> getTopProductsByFranchiseId(ServerRequest request) {
-        Long franchiseId = Long.valueOf(request.pathVariable("franchiseId"));
+        Long franchiseId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_FRANCHISE_ID));
 
         return service.getTopProductByStockPerBranch(franchiseId)
                 .map(mapper::toDTO)
