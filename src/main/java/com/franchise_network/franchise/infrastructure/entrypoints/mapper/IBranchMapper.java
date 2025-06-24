@@ -9,6 +9,4 @@ import org.mapstruct.Mapping;
 public interface IBranchMapper {
     @Mapping(target = "id", ignore = true)
     Branch branchDTOToBranch(BranchDTO dto);
-
-    BranchDTO branchToBranchDTO(Branch model);
 }

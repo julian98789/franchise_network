@@ -33,6 +33,29 @@ public class BranchUseCase implements IBranchServicePort {
                                         }))
                 );
     }
+
+    @Override
+    public Mono<Branch> updateBranchName(Long branchId, String newName) {
+        return validateBranchId(branchId)
+                .then(validateBranchName(newName))
+                .then(persistencePort.findById(branchId))
+                .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.BRANCH_NOT_FOUND)))
+                .flatMap(existingBranch ->
+                        checkBranchNameNotExists(newName, existingBranch.franchiseId())
+                                .then(persistencePort.save(
+                                        new Branch(branchId, newName, existingBranch.franchiseId())
+                                ))
+                );
+    }
+
+
+    private Mono<Void> validateBranchId(Long id) {
+        if (id == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.BRANCH_ID_REQUIRED));
+        }
+        return Mono.empty();
+    }
+
     private Mono<Void> checkBranchNameNotExists(String name, Long franchiseId) {
         return persistencePort.existsByNameAndFranchiseId(name, franchiseId)
                 .flatMap(exists -> {
@@ -58,9 +81,5 @@ public class BranchUseCase implements IBranchServicePort {
         }
         return Mono.empty();
     }
-
-
-
-
 
 }

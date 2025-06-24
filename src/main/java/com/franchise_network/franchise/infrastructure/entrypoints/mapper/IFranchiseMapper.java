@@ -9,5 +9,4 @@ import org.mapstruct.Mapping;
 public interface IFranchiseMapper {
     @Mapping(target = "id", ignore = true)
     Franchise franchiseDTOToFranchise(FranchiseDTO dto);
-    FranchiseDTO franchiseToDTO(Franchise franchise);
 }
