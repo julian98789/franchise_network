@@ -34,7 +34,7 @@ public class BranchProductHandler {
         return request.bodyToMono(BranchProductDTO.class)
                 .flatMap(dto -> service.assignProductToBranch(mapper.toModel(dto)))
                 .doOnSuccess(v -> log.info("Product assigned to branch successfully"))
-                .flatMap(v -> ServerResponse
+                .then(ServerResponse
                         .status(HttpStatus.CREATED)
                         .bodyValue(TechnicalMessage.PRODUCT_ASSIGNED_TO_BRANCH.getMessage()))
                 .doOnError(ex -> log.error("Error while assigning product to branch", ex))
@@ -65,6 +65,7 @@ public class BranchProductHandler {
                                     .build()));
                 });
     }
+
 
     public Mono<ServerResponse> removeProductFromBranch(ServerRequest request) {
         Long branchId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_BRANCH_ID));
@@ -136,6 +137,43 @@ public class BranchProductHandler {
                                     .build()));
                 });
     }
+
+    public Mono<ServerResponse> getTopProductsByFranchiseId(ServerRequest request) {
+        Long franchiseId = Long.valueOf(request.pathVariable("franchiseId"));
+
+        return service.getTopProductByStockPerBranch(franchiseId)
+                .map(mapper::toDTO)
+                .collectList()
+                .doOnSuccess(result -> log.info("Top products per branch retrieved for franchiseId={}", franchiseId))
+                .flatMap(list -> ServerResponse.ok().bodyValue(list))
+                .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        ex.getTechnicalMessage(),
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(TechnicalException.class, ex -> buildErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        TechnicalMessage.INTERNAL_ERROR,
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getTechnicalMessage().getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(ex -> {
+                    log.error("Unexpected error retrieving top products by franchiseId={}", franchiseId, ex);
+                    return buildErrorResponse(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            TechnicalMessage.INTERNAL_ERROR,
+                            List.of(ErrorDTO.builder()
+                                    .code(TechnicalMessage.INTERNAL_ERROR.getCode())
+                                    .message(TechnicalMessage.INTERNAL_ERROR.getMessage())
+                                    .build()));
+                });
+    }
+
 
 
 

@@ -5,6 +5,7 @@ import com.franchise_network.franchise.domain.spi.IBranchPersistencePort;
 import com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.mapper.IBranchEntityMapper;
 import com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.repository.IBranchRepository;
 import lombok.AllArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
@@ -26,5 +27,11 @@ public class BranchPersistenceAdapter implements IBranchPersistencePort {
     @Override
     public Mono<Boolean> existsByNameAndFranchiseId(String name, Long franchiseId) {
         return repository.existsByNameAndFranchiseId(name, franchiseId);
+    }
+
+    @Override
+    public Flux<Branch> findByFranchiseId(Long franchiseId) {
+        return repository.findByFranchiseId(franchiseId)
+                .map(mapper::toModel);
     }
 }
