@@ -181,6 +181,45 @@ public class RouterRest {
                                     @ApiResponse(responseCode = "500", description = "Internal server error")
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/branches/{branchId}/update-name",
+                    method = RequestMethod.PUT,
+                    beanClass = BranchHandler.class,
+                    beanMethod = "updateBranchName",
+                    operation = @Operation(
+                            operationId = "updateBranchName",
+                            summary = "Update the name of a branch",
+                            description = "Updates the name of an existing branch given its ID.",
+                            parameters = {
+                                    @Parameter(
+                                            name = "branchId",
+                                            in = ParameterIn.PATH,
+                                            required = true,
+                                            description = "ID of the branch to update"
+                                    )
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(
+                                            schema = @Schema(implementation = UpdateBranchNameDTO.class)
+                                    )
+                            ),
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Branch name successfully updated"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Invalid branch name or branch does not exist"
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Internal server error"
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(FranchiseHandler franchiseHandler,
@@ -202,7 +241,9 @@ public class RouterRest {
                 .andRoute(GET("/api/v1/franchises/{franchiseId}/top-products"),
                         branchProductHandler::getTopProductsByFranchiseId)
                 .andRoute(PUT("/api/v1/franchises/{franchiseId}/update-name"),
-                        franchiseHandler::updateFranchiseName);
+                        franchiseHandler::updateFranchiseName)
+                .andRoute(PUT("/api/v1/branches/{branchId}/update-name"),
+                        branchHandler::updateBranchName);
     }
 
 }

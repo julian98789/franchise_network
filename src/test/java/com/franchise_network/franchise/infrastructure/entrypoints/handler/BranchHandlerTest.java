@@ -7,6 +7,7 @@ import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.exceptions.TechnicalException;
 import com.franchise_network.franchise.domain.model.Branch;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.BranchDTO;
+import com.franchise_network.franchise.infrastructure.entrypoints.dto.UpdateBranchNameDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IBranchMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,5 +108,78 @@ class BranchHandlerTest {
                 .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
                 .verifyComplete();
     }
+
+    @Test
+    void updateBranchName_success() {
+        ServerRequest request = mock(ServerRequest.class);
+        Long branchId = 123L;
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal Actualizada");
+        Branch updated = new Branch(branchId, "Sucursal Actualizada", 1L);
+
+        when(request.pathVariable("branchId")).thenReturn(branchId.toString());
+        when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
+        when(branchServicePort.updateBranchName(branchId, dto.getName())).thenReturn(Mono.just(updated));
+
+        Mono<ServerResponse> response = handler.updateBranchName(request);
+
+        StepVerifier.create(response)
+                .expectNextMatches(res -> res.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateBranchName_businessException() {
+        ServerRequest request = mock(ServerRequest.class);
+        Long branchId = 456L;
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Nombre en uso");
+
+        when(request.pathVariable("branchId")).thenReturn(branchId.toString());
+        when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
+        when(branchServicePort.updateBranchName(branchId, dto.getName()))
+                .thenReturn(Mono.error(new BusinessException(TechnicalMessage.BRANCH_NAME_ALREADY_EXISTS)));
+
+        Mono<ServerResponse> response = handler.updateBranchName(request);
+
+        StepVerifier.create(response)
+                .expectNextMatches(res -> res.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateBranchName_technicalException() {
+        ServerRequest request = mock(ServerRequest.class);
+        Long branchId = 789L;
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal X");
+
+        when(request.pathVariable("branchId")).thenReturn(branchId.toString());
+        when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
+        when(branchServicePort.updateBranchName(branchId, dto.getName()))
+                .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
+
+        Mono<ServerResponse> response = handler.updateBranchName(request);
+
+        StepVerifier.create(response)
+                .expectNextMatches(res -> res.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateBranchName_unexpectedException() {
+        ServerRequest request = mock(ServerRequest.class);
+        Long branchId = 999L;
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal Z");
+
+        when(request.pathVariable("branchId")).thenReturn(branchId.toString());
+        when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
+        when(branchServicePort.updateBranchName(branchId, dto.getName()))
+                .thenReturn(Mono.error(new RuntimeException("Unexpected error")));
+
+        Mono<ServerResponse> response = handler.updateBranchName(request);
+
+        StepVerifier.create(response)
+                .expectNextMatches(res -> res.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
 }
 
