@@ -6,7 +6,6 @@ import com.franchise_network.franchise.infrastructure.adapters.persistenceadapte
 import com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.repository.IProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -28,11 +27,6 @@ public class ProductPersistenceAdapter implements IProductPersistencePort {
                 .map(mapper::toModel);
     }
 
-    @Override
-    public Flux<Product> findAll() {
-        return repository.findAll()
-                .map(mapper::toModel);
-    }
     @Override
     public Mono<Boolean> existsById(Long id) {
         return repository.existsById(id);
