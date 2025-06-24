@@ -86,4 +86,53 @@ class BranchUseCaseTest {
                         err.getMessage().equals(TechnicalMessage.FRANCHISE_NOT_FOUND.getMessage()))
                 .verify();
     }
+
+    @Test
+    void updateBranchName_success() {
+        Long branchId = 1L;
+        String newName = "Sucursal Actualizada";
+        Branch existing = new Branch(branchId, "Sucursal A", 10L);
+        Branch updated = new Branch(branchId, newName, 10L);
+
+        when(branchPersistencePort.findById(branchId)).thenReturn(Mono.just(existing));
+        when(branchPersistencePort.existsByNameAndFranchiseId(newName, 10L)).thenReturn(Mono.just(false));
+        when(branchPersistencePort.save(updated)).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(useCase.updateBranchName(branchId, newName))
+                .expectNext(updated)
+                .verifyComplete();
+    }
+
+    @Test
+    void updateBranchName_nullBranchId_shouldThrowError() {
+        when(branchPersistencePort.findById(null)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateBranchName(null, "Nuevo Nombre"))
+                .expectErrorMatches(err -> err instanceof BusinessException &&
+                        err.getMessage().equals(TechnicalMessage.BRANCH_ID_REQUIRED.getMessage()))
+                .verify();
+    }
+
+    @Test
+    void updateBranchName_invalidName_shouldThrowError() {
+        when(branchPersistencePort.findById(1L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateBranchName(1L, ""))
+                .expectErrorMatches(err -> err instanceof BusinessException &&
+                        err.getMessage().equals(TechnicalMessage.INVALID_BRANCH_NAME.getMessage()))
+                .verify();
+    }
+
+    @Test
+    void updateBranchName_branchNotFound_shouldThrowError() {
+        when(branchPersistencePort.findById(1L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateBranchName(1L, "Nuevo Nombre"))
+                .expectErrorMatches(err -> err instanceof BusinessException &&
+                        err.getMessage().equals(TechnicalMessage.BRANCH_NOT_FOUND.getMessage()))
+                .verify();
+    }
+
+
+
 }
