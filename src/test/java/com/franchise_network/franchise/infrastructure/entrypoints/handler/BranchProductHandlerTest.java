@@ -17,11 +17,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,16 +43,13 @@ class BranchProductHandlerTest {
     void assignProductToBranch_success() {
         ServerRequest request = mock(ServerRequest.class);
         BranchProductDTO dto = new BranchProductDTO(1L, 2L, 10);
-
         when(request.bodyToMono(BranchProductDTO.class)).thenReturn(Mono.just(dto));
         when(mapper.toModel(dto)).thenReturn(new BranchProduct(1L, 2L, 10));
-
         when(service.assignProductToBranch(any())).thenReturn(Mono.empty());
 
-        ServerResponse response = handler.assignProductToBranch(request).block();
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.statusCode());
+        StepVerifier.create(handler.assignProductToBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.CREATED))
+                .verifyComplete();
     }
 
     @Test
@@ -61,16 +57,15 @@ class BranchProductHandlerTest {
         ServerRequest request = mock(ServerRequest.class);
         when(request.pathVariable("branchId")).thenReturn("1");
         when(request.pathVariable("productId")).thenReturn("2");
-
         UpdateStockDTO dto = new UpdateStockDTO();
         dto.setStock(50);
 
         when(request.bodyToMono(UpdateStockDTO.class)).thenReturn(Mono.just(dto));
         when(service.updateStock(1L, 2L, 50)).thenReturn(Mono.empty());
 
-        ServerResponse response = handler.updateStock(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.statusCode());
+        StepVerifier.create(handler.updateStock(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
     }
 
     @Test
@@ -80,9 +75,9 @@ class BranchProductHandlerTest {
         when(request.pathVariable("productId")).thenReturn("2");
         when(service.removeProductFromBranch(1L, 2L)).thenReturn(Mono.empty());
 
-        ServerResponse response = handler.removeProductFromBranch(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.statusCode());
+        StepVerifier.create(handler.removeProductFromBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
     }
 
     @Test
@@ -101,10 +96,11 @@ class BranchProductHandlerTest {
         when(service.getTopProductByStockPerBranch(1L)).thenReturn(Flux.just(model));
         when(mapper.toDTO(model)).thenReturn(dto);
 
-        ServerResponse response = handler.getTopProductsByFranchiseId(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.statusCode());
+        StepVerifier.create(handler.getTopProductsByFranchiseId(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.OK))
+                .verifyComplete();
     }
+
 
     @Test
     void assignProductToBranch_businessException() {
@@ -112,11 +108,12 @@ class BranchProductHandlerTest {
         BranchProductDTO dto = new BranchProductDTO(1L, 2L, 10);
         when(request.bodyToMono(BranchProductDTO.class)).thenReturn(Mono.just(dto));
         when(mapper.toModel(dto)).thenReturn(new BranchProduct(1L, 2L, 10));
-        when(service.assignProductToBranch(any())).thenReturn(Mono.error(new BusinessException(TechnicalMessage.INTERNAL_ERROR)));
+        when(service.assignProductToBranch(any()))
+                .thenReturn(Mono.error(new BusinessException(TechnicalMessage.INTERNAL_ERROR)));
 
-        ServerResponse response = handler.assignProductToBranch(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode());
+        StepVerifier.create(handler.assignProductToBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
     }
 
     @Test
@@ -125,11 +122,12 @@ class BranchProductHandlerTest {
         BranchProductDTO dto = new BranchProductDTO(1L, 2L, 10);
         when(request.bodyToMono(BranchProductDTO.class)).thenReturn(Mono.just(dto));
         when(mapper.toModel(dto)).thenReturn(new BranchProduct(1L, 2L, 10));
-        when(service.assignProductToBranch(any())).thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
+        when(service.assignProductToBranch(any()))
+                .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
 
-        ServerResponse response = handler.assignProductToBranch(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        StepVerifier.create(handler.assignProductToBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 
     @Test
@@ -138,10 +136,142 @@ class BranchProductHandlerTest {
         BranchProductDTO dto = new BranchProductDTO(1L, 2L, 10);
         when(request.bodyToMono(BranchProductDTO.class)).thenReturn(Mono.just(dto));
         when(mapper.toModel(dto)).thenReturn(new BranchProduct(1L, 2L, 10));
-        when(service.assignProductToBranch(any())).thenReturn(Mono.error(new RuntimeException("Unexpected")));
+        when(service.assignProductToBranch(any()))
+                .thenReturn(Mono.error(new RuntimeException("Unexpected")));
 
-        ServerResponse response = handler.assignProductToBranch(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        StepVerifier.create(handler.assignProductToBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+
+    @Test
+    void removeProductFromBranch_businessException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+        when(service.removeProductFromBranch(1L, 2L))
+                .thenReturn(Mono.error(new BusinessException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.removeProductFromBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
+    }
+
+    @Test
+    void removeProductFromBranch_technicalException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+        when(service.removeProductFromBranch(1L, 2L))
+                .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.removeProductFromBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+    @Test
+    void removeProductFromBranch_unexpectedException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+        when(service.removeProductFromBranch(1L, 2L))
+                .thenReturn(Mono.error(new RuntimeException("Oops")));
+
+        StepVerifier.create(handler.removeProductFromBranch(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+
+    @Test
+    void updateStock_businessException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+
+        UpdateStockDTO dto = new UpdateStockDTO();
+        dto.setStock(20);
+
+        when(request.bodyToMono(UpdateStockDTO.class)).thenReturn(Mono.just(dto));
+        when(service.updateStock(1L, 2L, 20))
+                .thenReturn(Mono.error(new BusinessException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.updateStock(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateStock_technicalException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+
+        UpdateStockDTO dto = new UpdateStockDTO();
+        dto.setStock(20);
+
+        when(request.bodyToMono(UpdateStockDTO.class)).thenReturn(Mono.just(dto));
+        when(service.updateStock(1L, 2L, 20))
+                .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.updateStock(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+    @Test
+    void updateStock_unexpectedException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("branchId")).thenReturn("1");
+        when(request.pathVariable("productId")).thenReturn("2");
+
+        UpdateStockDTO dto = new UpdateStockDTO();
+        dto.setStock(20);
+
+        when(request.bodyToMono(UpdateStockDTO.class)).thenReturn(Mono.just(dto));
+        when(service.updateStock(1L, 2L, 20))
+                .thenReturn(Mono.error(new RuntimeException("Error inesperado")));
+
+        StepVerifier.create(handler.updateStock(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+    @Test
+    void getTopProductsByFranchiseId_businessException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("franchiseId")).thenReturn("1");
+        when(service.getTopProductByStockPerBranch(1L))
+                .thenReturn(Flux.error(new BusinessException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.getTopProductsByFranchiseId(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
+    }
+
+    @Test
+    void getTopProductsByFranchiseId_technicalException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("franchiseId")).thenReturn("1");
+        when(service.getTopProductByStockPerBranch(1L))
+                .thenReturn(Flux.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
+
+        StepVerifier.create(handler.getTopProductsByFranchiseId(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
+    }
+
+    @Test
+    void getTopProductsByFranchiseId_unexpectedException() {
+        ServerRequest request = mock(ServerRequest.class);
+        when(request.pathVariable("franchiseId")).thenReturn("1");
+        when(service.getTopProductByStockPerBranch(1L))
+                .thenReturn(Flux.error(new RuntimeException("Error inesperado")));
+
+        StepVerifier.create(handler.getTopProductsByFranchiseId(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 }
