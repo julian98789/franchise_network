@@ -76,4 +76,28 @@ class BranchPersistenceAdapterTest {
                 .expectNext(model)
                 .verifyComplete();
     }
+
+    @Test
+    void findById_success() {
+        Long branchId = 1L;
+        BranchEntity entity = new BranchEntity(branchId, "branch A", 10L);
+        Branch model = new Branch(branchId, "branch A", 10L);
+
+        when(repository.findById(branchId)).thenReturn(Mono.just(entity));
+        when(mapper.toModel(entity)).thenReturn(model);
+
+        StepVerifier.create(adapter.findById(branchId))
+                .expectNext(model)
+                .verifyComplete();
+    }
+
+    @Test
+    void findById_notFound() {
+        Long branchId = 99L;
+
+        when(repository.findById(branchId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(adapter.findById(branchId))
+                .verifyComplete();
+    }
 }

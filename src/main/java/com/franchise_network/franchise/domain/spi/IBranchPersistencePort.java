@@ -9,7 +9,6 @@ public interface IBranchPersistencePort {
     Mono<Boolean> existsById(Long id);
     Mono<Boolean> existsByNameAndFranchiseId(String name, Long franchiseId);
     Flux<Branch> findByFranchiseId(Long franchiseId);
-
-
+    Mono<Branch> findById(Long branchId);
 
 }
