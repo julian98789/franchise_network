@@ -4,25 +4,22 @@ package com.franchise_network.franchise.infrastructure.entrypoints.handler;
 import com.franchise_network.franchise.domain.api.IBranchServicePort;
 import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
+import com.franchise_network.franchise.domain.exceptions.TechnicalException;
 import com.franchise_network.franchise.domain.model.Branch;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.BranchDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IBranchMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import reactor.core.publisher.Mono;
-
-import static org.mockito.Mockito.*;
-import com.franchise_network.franchise.domain.exceptions.TechnicalException;
-import org.mockito.Mock;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BranchHandlerTest {
@@ -50,9 +47,11 @@ class BranchHandlerTest {
         when(branchMapper.branchDTOToBranch(dto)).thenReturn(branch);
         when(branchServicePort.addBranchToFranchise(branch)).thenReturn(Mono.just(branch));
 
-        ServerResponse response = handler.addBranchToFranchise(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.statusCode());
+        Mono<ServerResponse> responseMono = handler.addBranchToFranchise(request);
+
+        StepVerifier.create(responseMono)
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.CREATED))
+                .verifyComplete();
     }
 
     @Test
@@ -66,9 +65,11 @@ class BranchHandlerTest {
         when(branchServicePort.addBranchToFranchise(branch))
                 .thenReturn(Mono.error(new BusinessException(TechnicalMessage.BRANCH_NAME_ALREADY_EXISTS)));
 
-        ServerResponse response = handler.addBranchToFranchise(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode());
+        Mono<ServerResponse> responseMono = handler.addBranchToFranchise(request);
+
+        StepVerifier.create(responseMono)
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
     }
 
     @Test
@@ -82,9 +83,11 @@ class BranchHandlerTest {
         when(branchServicePort.addBranchToFranchise(branch))
                 .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
 
-        ServerResponse response = handler.addBranchToFranchise(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        Mono<ServerResponse> responseMono = handler.addBranchToFranchise(request);
+
+        StepVerifier.create(responseMono)
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 
     @Test
@@ -98,8 +101,11 @@ class BranchHandlerTest {
         when(branchServicePort.addBranchToFranchise(branch))
                 .thenReturn(Mono.error(new RuntimeException("Unexpected")));
 
-        ServerResponse response = handler.addBranchToFranchise(request).block();
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        Mono<ServerResponse> responseMono = handler.addBranchToFranchise(request);
+
+        StepVerifier.create(responseMono)
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 }
+

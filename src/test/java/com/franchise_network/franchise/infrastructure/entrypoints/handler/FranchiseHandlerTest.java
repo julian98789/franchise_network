@@ -12,14 +12,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
 class FranchiseHandlerTest {
@@ -33,10 +31,8 @@ class FranchiseHandlerTest {
     @InjectMocks
     private FranchiseHandler handler;
 
-
     @Test
     void createFranchise_success() {
-
         ServerRequest request = mock(ServerRequest.class);
         FranchiseDTO dto = new FranchiseDTO(1L, "My Franchise");
         Franchise franchise = new Franchise(1L, "My Franchise");
@@ -45,10 +41,9 @@ class FranchiseHandlerTest {
         when(franchiseMapper.franchiseDTOToFranchise(dto)).thenReturn(franchise);
         when(franchiseServicePort.registerFranchise(franchise)).thenReturn(Mono.just(franchise));
 
-        ServerResponse response = handler.createFranchise(request).block();
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.CREATED, response.statusCode());
+        StepVerifier.create(handler.createFranchise(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.CREATED))
+                .verifyComplete();
     }
 
     @Test
@@ -61,10 +56,9 @@ class FranchiseHandlerTest {
         when(franchiseServicePort.registerFranchise(any()))
                 .thenReturn(Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_ALREADY_EXISTS)));
 
-        ServerResponse response = handler.createFranchise(request).block();
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.statusCode());
+        StepVerifier.create(handler.createFranchise(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.BAD_REQUEST))
+                .verifyComplete();
     }
 
     @Test
@@ -77,10 +71,9 @@ class FranchiseHandlerTest {
         when(franchiseServicePort.registerFranchise(any()))
                 .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
 
-        ServerResponse response = handler.createFranchise(request).block();
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        StepVerifier.create(handler.createFranchise(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 
     @Test
@@ -93,9 +86,8 @@ class FranchiseHandlerTest {
         when(franchiseServicePort.registerFranchise(any()))
                 .thenReturn(Mono.error(new RuntimeException("Unexpected")));
 
-        ServerResponse response = handler.createFranchise(request).block();
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.statusCode());
+        StepVerifier.create(handler.createFranchise(request))
+                .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
+                .verifyComplete();
     }
 }
