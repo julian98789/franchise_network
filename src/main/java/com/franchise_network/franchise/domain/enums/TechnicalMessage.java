@@ -28,7 +28,8 @@ public enum TechnicalMessage {
     FRANCHISE_ID_REQUIRED("400", "Franchise ID is required.", "franchiseId"),
     BRANCH_ID_REQUIRED("400", "Branch ID is required.", "branchId"),
     PRODUCT_ID_REQUIRED("400", "Product ID is required.", "productId"),
-    BRANCH_NAME_ALREADY_EXISTS("409", "Branch name already exists for this franchise.", "name");
+    BRANCH_NAME_ALREADY_EXISTS("409", "Branch name already exists for this franchise.", "name"),
+    FRANCHISE_NAME_UPDATED("200", "Franchise name updated successfully.", "");
 
 
     private final String code;

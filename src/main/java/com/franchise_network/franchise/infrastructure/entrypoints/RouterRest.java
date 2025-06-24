@@ -159,6 +159,28 @@ public class RouterRest {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/franchises/{franchiseId}/update-name",
+                    method = RequestMethod.PUT,
+                    beanClass = FranchiseHandler.class,
+                    beanMethod = "updateFranchiseName",
+                    operation = @Operation(
+                            operationId = "updateFranchiseName",
+                            summary = "Update the name of an existing franchise",
+                            parameters = {
+                                    @Parameter(name = "franchiseId", in = ParameterIn.PATH, required = true, description = "ID of the franchise to update")
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(schema = @Schema(implementation = UpdateFranchiseNameDTO.class))
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Franchise name updated"),
+                                    @ApiResponse(responseCode = "400", description = "Invalid franchise name or franchise does not exist"),
+                                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(FranchiseHandler franchiseHandler,
@@ -178,7 +200,9 @@ public class RouterRest {
                 .andRoute(PUT("/api/v1/branches/{branchId}/products/{productId}/stock"),
                         branchProductHandler::updateStock)
                 .andRoute(GET("/api/v1/franchises/{franchiseId}/top-products"),
-                        branchProductHandler::getTopProductsByFranchiseId);
+                        branchProductHandler::getTopProductsByFranchiseId)
+                .andRoute(PUT("/api/v1/franchises/{franchiseId}/update-name"),
+                        franchiseHandler::updateFranchiseName);
     }
 
 }
