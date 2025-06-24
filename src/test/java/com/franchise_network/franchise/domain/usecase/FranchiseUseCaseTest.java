@@ -4,7 +4,6 @@ import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.model.Franchise;
 import com.franchise_network.franchise.domain.spi.IFranchisePersistencePort;
-import com.franchise_network.franchise.domain.usecase.FranchiseUseCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,6 +12,8 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,46 +40,44 @@ class FranchiseUseCaseTest {
         verify(persistencePort).save(franchise);
     }
 
+
+
     @Test
-    void registerFranchise_invalidName_shouldThrowError() {
-        Franchise franchise = new Franchise(1L, " ");
+    void updateFranchiseName_success() {
+        Long id = 1L;
+        String newName = "Nueva Franquicia";
 
-        StepVerifier.create(useCase.registerFranchise(franchise))
-                .expectErrorMatches(err ->
-                        err instanceof BusinessException &&
-                                err.getMessage().equals(TechnicalMessage.INVALID_FRANCHISE_NAME.getMessage()))
-                .verify();
+        when(persistencePort.existsByName(newName)).thenReturn(Mono.just(false));
+        when(persistencePort.existsById(id)).thenReturn(Mono.just(true));
+        when(persistencePort.save(new Franchise(id, newName))).thenReturn(Mono.just(new Franchise(id, newName)));
 
-        verifyNoInteractions(persistencePort);
+        StepVerifier.create(useCase.updateFranchiseName(id, newName))
+                .expectNextMatches(franchise -> franchise.id().equals(id) && franchise.name().equals(newName))
+                .verifyComplete();
+
+        verify(persistencePort).existsByName(newName);
+        verify(persistencePort).existsById(id);
+        verify(persistencePort).save(new Franchise(id, newName));
     }
 
-    @Test
-    void registerFranchise_nameTooLong_shouldThrowError() {
-        String longName = "F".repeat(101);
-        Franchise franchise = new Franchise(1L, longName);
 
-        StepVerifier.create(useCase.registerFranchise(franchise))
-                .expectErrorMatches(err ->
-                        err instanceof BusinessException &&
-                                err.getMessage().equals(TechnicalMessage.INVALID_FRANCHISE_NAME.getMessage()))
-                .verify();
-
-        verifyNoInteractions(persistencePort);
-    }
 
     @Test
-    void registerFranchise_alreadyExists_shouldThrowError() {
-        Franchise franchise = new Franchise(1L, "Franquicia Y");
+    void updateFranchiseName_franchiseNotFound_shouldThrowError() {
+        Long id = 99L;
+        String name = "Nueva";
 
-        when(persistencePort.existsByName("Franquicia Y")).thenReturn(Mono.just(true));
+        when(persistencePort.existsByName(name)).thenReturn(Mono.just(false));
+        when(persistencePort.existsById(id)).thenReturn(Mono.just(false));
 
-        StepVerifier.create(useCase.registerFranchise(franchise))
+        StepVerifier.create(useCase.updateFranchiseName(id, name))
                 .expectErrorMatches(err ->
                         err instanceof BusinessException &&
-                                err.getMessage().equals(TechnicalMessage.FRANCHISE_ALREADY_EXISTS.getMessage()))
+                                err.getMessage().equals(TechnicalMessage.FRANCHISE_NOT_FOUND.getMessage()))
                 .verify();
 
-        verify(persistencePort).existsByName("Franquicia Y");
+        verify(persistencePort).existsByName(name);
+        verify(persistencePort).existsById(id);
         verify(persistencePort, never()).save(any());
     }
 }
