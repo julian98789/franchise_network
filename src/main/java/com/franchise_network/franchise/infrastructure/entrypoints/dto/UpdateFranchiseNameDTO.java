@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FranchiseDTO {
+public class UpdateFranchiseNameDTO {
     private String name;
 }

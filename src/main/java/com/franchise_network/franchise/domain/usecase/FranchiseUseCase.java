@@ -17,16 +17,46 @@ public class FranchiseUseCase implements IFranchiseServicePort {
 
     @Override
     public Mono<Franchise> registerFranchise(Franchise franchise) {
-        if (franchise.name() == null || franchise.name().isBlank() || franchise.name().length() > 100) {
+        return validateFranchiseName(franchise.name())
+                .then(checkFranchiseNameNotExists(franchise.name()))
+                .then(persistencePort.save(franchise));
+    }
+
+    @Override
+    public Mono<Franchise> updateFranchiseName(Long franchiseId, String newName) {
+        return validateFranchiseId(franchiseId)
+                .then(validateFranchiseName(newName))
+                .then(checkFranchiseNameNotExists(newName))
+                .then(persistencePort.existsById(franchiseId))
+                .flatMap(found -> {
+                    if (Boolean.FALSE.equals(found)) {
+                        return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_NOT_FOUND));
+                    }
+                    return persistencePort.save(new Franchise(franchiseId, newName));
+                });
+    }
+
+    private Mono<Void> validateFranchiseId(Long id) {
+        if (id == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_ID_REQUIRED));
+        }
+        return Mono.empty();
+    }
+
+    private Mono<Void> validateFranchiseName(String name) {
+        if (name == null || name.isBlank() || name.length() > 100) {
             return Mono.error(new BusinessException(TechnicalMessage.INVALID_FRANCHISE_NAME));
         }
+        return Mono.empty();
+    }
 
-        return persistencePort.existsByName(franchise.name())
+    private Mono<Void> checkFranchiseNameNotExists(String name) {
+        return persistencePort.existsByName(name)
                 .flatMap(exists -> {
                     if (Boolean.TRUE.equals(exists)) {
                         return Mono.error(new BusinessException(TechnicalMessage.FRANCHISE_ALREADY_EXISTS));
                     }
-                    return persistencePort.save(franchise);
+                    return Mono.empty();
                 });
     }
 }
