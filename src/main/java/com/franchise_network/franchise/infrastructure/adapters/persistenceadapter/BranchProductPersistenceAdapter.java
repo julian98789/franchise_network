@@ -6,6 +6,7 @@ import com.franchise_network.franchise.infrastructure.adapters.persistenceadapte
 import com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.mapper.IBranchProductEntityMapper;
 import com.franchise_network.franchise.infrastructure.adapters.persistenceadapter.repository.IBranchProductRepository;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
@@ -41,6 +42,12 @@ public class BranchProductPersistenceAdapter implements IBranchProductPersistenc
     public Mono<BranchProduct> updateStock(Long branchId, Long productId, Integer newStock) {
         return repository.updateStock(branchId, productId, newStock)
                 .thenReturn(new BranchProduct(branchId, productId, newStock));
+    }
+
+    @Override
+    public Flux<BranchProduct> findByBranchId(Long branchId) {
+        return repository.findByBranchId(branchId)
+                .map(entityMapper::toModel);
     }
 
 }
