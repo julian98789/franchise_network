@@ -13,7 +13,6 @@ import reactor.test.StepVerifier;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class ProductUseCaseTest {
 
@@ -23,56 +22,89 @@ class ProductUseCaseTest {
     @InjectMocks
     private ProductUseCase useCase;
 
+    private final String validName = "tea";
+
+
+
     @Test
     void createProduct_success() {
-        Product product = new Product(1L, "Producto A");
+        Product product = new Product(1L, validName);
 
+        when(persistencePort.existsByName(validName)).thenReturn(Mono.just(false));
         when(persistencePort.save(product)).thenReturn(Mono.just(product));
 
         StepVerifier.create(useCase.createProduct(product))
                 .expectNext(product)
                 .verifyComplete();
 
+        verify(persistencePort).existsByName(validName);
         verify(persistencePort).save(product);
     }
 
-    @Test
-    void createProduct_nullName_shouldThrowError() {
-        Product product = new Product(1L, null);
 
-        StepVerifier.create(useCase.createProduct(product))
+    @Test
+    void updateProductName_success() {
+        Long id = 1L;
+        String newName = "Nuevo Nombre";
+        Product updated = new Product(id, newName);
+
+        when(persistencePort.findById(id)).thenReturn(Mono.just(new Product(id, "Anterior")));
+        when(persistencePort.existsByName(newName)).thenReturn(Mono.just(false));
+        when(persistencePort.save(updated)).thenReturn(Mono.just(updated));
+
+        StepVerifier.create(useCase.updateProductName(id, newName))
+                .expectNext(updated)
+                .verifyComplete();
+
+        verify(persistencePort).findById(id);
+        verify(persistencePort).existsByName(newName);
+        verify(persistencePort).save(updated);
+    }
+
+    @Test
+    void updateProductName_nullId_shouldThrowError() {
+        StepVerifier.create(useCase.updateProductName(null, "Nombre"))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                                error.getMessage().equals(TechnicalMessage.INVALID_PRODUCT_NAME.getMessage()))
+                                error.getMessage().equals(TechnicalMessage.PRODUCT_ID_REQUIRED.getMessage()))
                 .verify();
 
         verifyNoInteractions(persistencePort);
     }
 
     @Test
-    void createProduct_blankName_shouldThrowError() {
-        Product product = new Product(1L, "  ");
+    void updateProductName_invalidName_shouldThrowError() {
+        Long id = 1L;
 
-        StepVerifier.create(useCase.createProduct(product))
+        when(persistencePort.findById(anyLong())).thenReturn(Mono.just(new Product(id, "Mocked")));
+
+        StepVerifier.create(useCase.updateProductName(id, "   "))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
                                 error.getMessage().equals(TechnicalMessage.INVALID_PRODUCT_NAME.getMessage()))
                 .verify();
 
-        verifyNoInteractions(persistencePort);
+        verify(persistencePort, never()).save(any());
+        verify(persistencePort, never()).existsByName(any());
     }
+
 
     @Test
-    void createProduct_nameTooLong_shouldThrowError() {
-        String longName = "P".repeat(101);
-        Product product = new Product(1L, longName);
+    void updateProductName_productNotFound_shouldThrowError() {
+        Long id = 1L;
+        String newName = "Nuevo Nombre";
 
-        StepVerifier.create(useCase.createProduct(product))
+        when(persistencePort.findById(id)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateProductName(id, newName))
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
-                                error.getMessage().equals(TechnicalMessage.INVALID_PRODUCT_NAME.getMessage()))
+                                error.getMessage().equals(TechnicalMessage.PRODUCT_NOT_FOUND.getMessage()))
                 .verify();
 
-        verifyNoInteractions(persistencePort);
+        verify(persistencePort).findById(id);
+        verify(persistencePort, never()).existsByName(any());
+        verify(persistencePort, never()).save(any());
     }
+
 }

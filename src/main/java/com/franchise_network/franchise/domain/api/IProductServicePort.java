@@ -5,4 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface IProductServicePort {
     Mono<Product> createProduct(Product product);
+    Mono<Product> updateProductName(Long id, String newName);
 }
