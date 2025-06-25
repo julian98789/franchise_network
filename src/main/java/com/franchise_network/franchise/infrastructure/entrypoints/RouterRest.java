@@ -1,11 +1,8 @@
 package com.franchise_network.franchise.infrastructure.entrypoints;
 
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.*;
-import com.franchise_network.franchise.infrastructure.entrypoints.handler.BranchHandler;
-import com.franchise_network.franchise.infrastructure.entrypoints.handler.BranchProductHandler;
-import com.franchise_network.franchise.infrastructure.entrypoints.handler.FranchiseHandler;
+import com.franchise_network.franchise.infrastructure.entrypoints.handler.*;
 
-import com.franchise_network.franchise.infrastructure.entrypoints.handler.ProductHandler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -247,7 +244,8 @@ public class RouterRest {
     public RouterFunction<ServerResponse> routerFunction(FranchiseHandler franchiseHandler,
                                                          BranchHandler branchHandler,
                                                          ProductHandler productHandler,
-                                                         BranchProductHandler branchProductHandler) {
+                                                         BranchProductHandler branchProductHandler,
+                                                         HealthCheckHandler healthCheckHandler) {
         return route(POST("/api/v1/register-franchise"),
                 franchiseHandler::createFranchise)
                 .andRoute(POST("/api/v1/register-branch"),
@@ -267,7 +265,9 @@ public class RouterRest {
                 .andRoute(PUT("/api/v1/branches/{branchId}/update-name"),
                         branchHandler::updateBranchName)
                 .andRoute(PUT("/api/v1/products/{productId}/update-name"),
-                        productHandler::updateProductName);
+                        productHandler::updateProductName)
+                .andRoute(GET("/health"), healthCheckHandler::health);
+
     }
 
 }
