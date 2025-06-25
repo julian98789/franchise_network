@@ -8,6 +8,7 @@ import com.franchise_network.franchise.infrastructure.entrypoints.dto.BranchDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.UpdateBranchNameDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IBranchMapper;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.APIResponse;
+import com.franchise_network.franchise.infrastructure.entrypoints.util.Constants;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.ErrorDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +66,7 @@ public class BranchHandler {
     }
 
     public Mono<ServerResponse> updateBranchName(ServerRequest request) {
-        Long branchId = Long.valueOf(request.pathVariable("branchId"));
+        Long branchId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_BRANCH_ID));
 
         return request.bodyToMono(UpdateBranchNameDTO.class)
                 .flatMap(dto -> branchServicePort.updateBranchName(branchId, dto.getName()))

@@ -220,6 +220,28 @@ public class RouterRest {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/api/v1/products/{productId}/update-name",
+                    method = RequestMethod.PUT,
+                    beanClass = ProductHandler.class,
+                    beanMethod = "updateProductName",
+                    operation = @Operation(
+                            operationId = "updateProductName",
+                            summary = "Update the name of an existing product",
+                            parameters = {
+                                    @Parameter(name = "productId", in = ParameterIn.PATH, required = true, description = "ID of the product")
+                            },
+                            requestBody = @RequestBody(
+                                    required = true,
+                                    content = @Content(schema = @Schema(implementation = UpdateProductNameDTO.class))
+                            ),
+                            responses = {
+                                    @ApiResponse(responseCode = "200", description = "Product name updated"),
+                                    @ApiResponse(responseCode = "400", description = "Invalid name or product not found"),
+                                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(FranchiseHandler franchiseHandler,
@@ -243,7 +265,9 @@ public class RouterRest {
                 .andRoute(PUT("/api/v1/franchises/{franchiseId}/update-name"),
                         franchiseHandler::updateFranchiseName)
                 .andRoute(PUT("/api/v1/branches/{branchId}/update-name"),
-                        branchHandler::updateBranchName);
+                        branchHandler::updateBranchName)
+                .andRoute(PUT("/api/v1/products/{productId}/update-name"),
+                        productHandler::updateProductName);
     }
 
 }
