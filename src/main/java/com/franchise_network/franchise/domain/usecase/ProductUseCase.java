@@ -18,12 +18,40 @@ public class ProductUseCase implements IProductServicePort {
 
     @Override
     public Mono<Product> createProduct(Product product) {
-        if (product.name() == null || product.name().isBlank() || product.name().length() > 100) {
-            return Mono.error(new BusinessException(TechnicalMessage.INVALID_PRODUCT_NAME));
-        }
-        return persistencePort.save(product);
-
+        return validateProductName(product.name())
+                .then(checkProductNameNotExists(product.name()))
+                .then(persistencePort.save(product));
     }
 
+    @Override
+    public Mono<Product> updateProductName(Long id, String newName) {
+        if (id == null) {
+            return Mono.error(new BusinessException(TechnicalMessage.PRODUCT_ID_REQUIRED));
+        }
 
+        return validateProductName(newName)
+                .then(persistencePort.findById(id)
+                        .switchIfEmpty(Mono.error(new BusinessException(TechnicalMessage.PRODUCT_NOT_FOUND)))
+                        .flatMap(existing ->
+                                checkProductNameNotExists(newName)
+                                        .then(persistencePort.save(new Product(id, newName)))
+                        ));
+    }
+
+    private Mono<Void> validateProductName(String name) {
+        if (name == null || name.isBlank() || name.length() > 100) {
+            return Mono.error(new BusinessException(TechnicalMessage.INVALID_PRODUCT_NAME));
+        }
+        return Mono.empty();
+    }
+
+    private Mono<Void> checkProductNameNotExists(String name) {
+        return persistencePort.existsByName(name)
+                .flatMap(exists -> {
+                    if (Boolean.TRUE.equals(exists)) {
+                        return Mono.error(new BusinessException(TechnicalMessage.PRODUCT_NAME_ALREADY_EXISTS));
+                    }
+                    return Mono.empty();
+                });
+    }
 }

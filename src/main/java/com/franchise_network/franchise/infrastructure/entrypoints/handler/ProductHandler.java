@@ -5,8 +5,10 @@ import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.exceptions.TechnicalException;
 import com.franchise_network.franchise.infrastructure.entrypoints.dto.ProductDTO;
+import com.franchise_network.franchise.infrastructure.entrypoints.dto.UpdateProductNameDTO;
 import com.franchise_network.franchise.infrastructure.entrypoints.mapper.IProductMapper;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.APIResponse;
+import com.franchise_network.franchise.infrastructure.entrypoints.util.Constants;
 import com.franchise_network.franchise.infrastructure.entrypoints.util.ErrorDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +63,44 @@ public class ProductHandler {
                                     .build()));
                 });
     }
+
+    public Mono<ServerResponse> updateProductName(ServerRequest request) {
+        Long productId = Long.valueOf(request.pathVariable(Constants.PATH_VARIABLE_PRODUCT_ID));
+
+        return request.bodyToMono(UpdateProductNameDTO.class)
+                .flatMap(dto -> service.updateProductName(productId, dto.getName()))
+                .doOnSuccess(product -> log.info("Product name updated successfully"))
+                .flatMap(product -> ServerResponse
+                        .ok()
+                        .bodyValue(TechnicalMessage.PRODUCT_NAME_UPDATED.getMessage()))
+                .onErrorResume(BusinessException.class, ex -> buildErrorResponse(
+                        HttpStatus.BAD_REQUEST,
+                        ex.getTechnicalMessage(),
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(TechnicalException.class, ex -> buildErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        TechnicalMessage.INTERNAL_ERROR,
+                        List.of(ErrorDTO.builder()
+                                .code(ex.getTechnicalMessage().getCode())
+                                .message(ex.getMessage())
+                                .param(ex.getTechnicalMessage().getParam())
+                                .build())))
+                .onErrorResume(ex -> {
+                    log.error("Unexpected error occurred", ex);
+                    return buildErrorResponse(
+                            HttpStatus.INTERNAL_SERVER_ERROR,
+                            TechnicalMessage.INTERNAL_ERROR,
+                            List.of(ErrorDTO.builder()
+                                    .code(TechnicalMessage.INTERNAL_ERROR.getCode())
+                                    .message(ex.getMessage())
+                                    .build()));
+                });
+    }
+
 
 
     private Mono<ServerResponse> buildErrorResponse(HttpStatus status, TechnicalMessage code, List<ErrorDTO> errors) {

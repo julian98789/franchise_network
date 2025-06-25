@@ -30,7 +30,9 @@ public enum TechnicalMessage {
     PRODUCT_ID_REQUIRED("400", "Product ID is required.", "productId"),
     BRANCH_NAME_ALREADY_EXISTS("409", "Branch name already exists for this franchise.", "name"),
     FRANCHISE_NAME_UPDATED("200", "Franchise name updated successfully.", ""),
-    BRANCH_NAME_UPDATED("200", "Branch name updated successfully.", "");
+    BRANCH_NAME_UPDATED("200", "Branch name updated successfully.", ""),
+    PRODUCT_NAME_UPDATED("200", "Product name updated successfully.", ""),
+    PRODUCT_NAME_ALREADY_EXISTS("409", "Product name already exists.", "name");
 
     private final String code;
     private final String message;
