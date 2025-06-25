@@ -31,4 +31,9 @@ public class ProductPersistenceAdapter implements IProductPersistencePort {
     public Mono<Boolean> existsById(Long id) {
         return repository.existsById(id);
     }
+
+    @Override
+    public Mono<Boolean> existsByName(String name) {
+        return repository.existsByName(name);
+    }
 }

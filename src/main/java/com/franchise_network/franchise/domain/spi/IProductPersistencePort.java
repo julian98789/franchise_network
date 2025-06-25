@@ -7,4 +7,6 @@ public interface IProductPersistencePort {
     Mono<Product> save(Product product);
     Mono<Product> findById(Long id);
     Mono<Boolean>existsById(Long id);
+    Mono<Boolean> existsByName(String name);
+
 }
