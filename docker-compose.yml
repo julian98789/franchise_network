@@ -1,0 +1,12 @@
+services:
+  franchise-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: franchise-app
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_R2DBC_URL: ${SPRING_R2DBC_URL}
+      SPRING_R2DBC_USERNAME: ${SPRING_R2DBC_USERNAME}
+      SPRING_R2DBC_PASSWORD: ${SPRING_R2DBC_PASSWORD}
