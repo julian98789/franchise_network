@@ -1,6 +1,5 @@
 package com.franchise_network.franchise.infrastructure.entrypoints.handler;
 
-
 import com.franchise_network.franchise.domain.api.IBranchServicePort;
 import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
@@ -41,8 +40,8 @@ class BranchHandlerTest {
     @Test
     void addBranchToFranchise_success() {
         ServerRequest request = mock(ServerRequest.class);
-        BranchDTO dto = new BranchDTO("Sucursal A", 1L);
-        Branch branch = new Branch(null, "Sucursal A", 1L);
+        BranchDTO dto = new BranchDTO("Branch A", 1L);
+        Branch branch = new Branch(null, "Branch A", 1L);
 
         when(request.bodyToMono(BranchDTO.class)).thenReturn(Mono.just(dto));
         when(branchMapper.branchDTOToBranch(dto)).thenReturn(branch);
@@ -58,8 +57,8 @@ class BranchHandlerTest {
     @Test
     void addBranchToFranchise_businessException() {
         ServerRequest request = mock(ServerRequest.class);
-        BranchDTO dto = new BranchDTO("Sucursal B", 1L);
-        Branch branch = new Branch(null, "Sucursal B", 1L);
+        BranchDTO dto = new BranchDTO("Branch B", 1L);
+        Branch branch = new Branch(null, "Branch B", 1L);
 
         when(request.bodyToMono(BranchDTO.class)).thenReturn(Mono.just(dto));
         when(branchMapper.branchDTOToBranch(dto)).thenReturn(branch);
@@ -76,8 +75,8 @@ class BranchHandlerTest {
     @Test
     void addBranchToFranchise_technicalException() {
         ServerRequest request = mock(ServerRequest.class);
-        BranchDTO dto = new BranchDTO("Sucursal C", 1L);
-        Branch branch = new Branch(null, "Sucursal C", 1L);
+        BranchDTO dto = new BranchDTO("Branch C", 1L);
+        Branch branch = new Branch(null, "Branch C", 1L);
 
         when(request.bodyToMono(BranchDTO.class)).thenReturn(Mono.just(dto));
         when(branchMapper.branchDTOToBranch(dto)).thenReturn(branch);
@@ -94,13 +93,13 @@ class BranchHandlerTest {
     @Test
     void addBranchToFranchise_unexpectedException() {
         ServerRequest request = mock(ServerRequest.class);
-        BranchDTO dto = new BranchDTO("Sucursal D", 1L);
-        Branch branch = new Branch(null, "Sucursal D", 1L);
+        BranchDTO dto = new BranchDTO("Branch D", 1L);
+        Branch branch = new Branch(null, "Branch D", 1L);
 
         when(request.bodyToMono(BranchDTO.class)).thenReturn(Mono.just(dto));
         when(branchMapper.branchDTOToBranch(dto)).thenReturn(branch);
         when(branchServicePort.addBranchToFranchise(branch))
-                .thenReturn(Mono.error(new RuntimeException("Unexpected")));
+                .thenReturn(Mono.error(new RuntimeException("Unexpected error")));
 
         Mono<ServerResponse> responseMono = handler.addBranchToFranchise(request);
 
@@ -113,8 +112,8 @@ class BranchHandlerTest {
     void updateBranchName_success() {
         ServerRequest request = mock(ServerRequest.class);
         Long branchId = 123L;
-        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal Actualizada");
-        Branch updated = new Branch(branchId, "Sucursal Actualizada", 1L);
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Updated Branch");
+        Branch updated = new Branch(branchId, "Updated Branch", 1L);
 
         when(request.pathVariable("branchId")).thenReturn(branchId.toString());
         when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
@@ -131,7 +130,7 @@ class BranchHandlerTest {
     void updateBranchName_businessException() {
         ServerRequest request = mock(ServerRequest.class);
         Long branchId = 456L;
-        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Nombre en uso");
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Duplicate Name");
 
         when(request.pathVariable("branchId")).thenReturn(branchId.toString());
         when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
@@ -149,7 +148,7 @@ class BranchHandlerTest {
     void updateBranchName_technicalException() {
         ServerRequest request = mock(ServerRequest.class);
         Long branchId = 789L;
-        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal X");
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Main Branch");
 
         when(request.pathVariable("branchId")).thenReturn(branchId.toString());
         when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
@@ -167,12 +166,12 @@ class BranchHandlerTest {
     void updateBranchName_unexpectedException() {
         ServerRequest request = mock(ServerRequest.class);
         Long branchId = 999L;
-        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Sucursal Z");
+        UpdateBranchNameDTO dto = new UpdateBranchNameDTO("Test Branch");
 
         when(request.pathVariable("branchId")).thenReturn(branchId.toString());
         when(request.bodyToMono(UpdateBranchNameDTO.class)).thenReturn(Mono.just(dto));
         when(branchServicePort.updateBranchName(branchId, dto.getName()))
-                .thenReturn(Mono.error(new RuntimeException("Unexpected error")));
+                .thenReturn(Mono.error(new RuntimeException("Database connection failed")));
 
         Mono<ServerResponse> response = handler.updateBranchName(request);
 
@@ -180,6 +179,4 @@ class BranchHandlerTest {
                 .expectNextMatches(res -> res.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
                 .verifyComplete();
     }
-
 }
-
