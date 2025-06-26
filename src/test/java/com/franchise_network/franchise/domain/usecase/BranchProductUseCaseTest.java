@@ -17,6 +17,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+
+
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -116,6 +119,30 @@ class BranchProductUseCaseTest {
     }
 
 
+    @Test
+    void getTopProductByStockPerBranch_noProductsInBranch_shouldReturnEmpty() {
+        Branch branch = new Branch(1L, "Branch A", 10L);
+
+        when(branchPersistencePort.findByFranchiseId(10L)).thenReturn(Flux.just(branch));
+        when(branchProductPersistencePort.findByBranchId(1L)).thenReturn(Flux.empty());
+
+        StepVerifier.create(useCase.getTopProductByStockPerBranch(10L))
+                .verifyComplete();
+    }
+
+    @Test
+    void getTopProductByStockPerBranch_internalError_shouldThrowException() {
+        Branch branch = new Branch(1L, "Branch A", 10L);
+        BranchProduct bp1 = new BranchProduct(1L, 5L, 30);
+
+        when(branchPersistencePort.findByFranchiseId(10L)).thenReturn(Flux.just(branch));
+        when(branchProductPersistencePort.findByBranchId(1L)).thenReturn(Flux.just(bp1));
+        when(productPersistencePort.findById(5L)).thenReturn(Mono.error(new RuntimeException("DB error")));
+
+        StepVerifier.create(useCase.getTopProductByStockPerBranch(10L))
+                .expectError(RuntimeException.class)
+                .verify();
+    }
 
 
 }

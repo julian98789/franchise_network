@@ -25,16 +25,20 @@ class FranchiseUseCaseTest {
 
     @Test
     void registerFranchise_success() {
-        Franchise franchise = new Franchise(1L, "Franquicia X");
 
-        when(persistencePort.existsByName("Franquicia X")).thenReturn(Mono.just(false));
+        Franchise franchise = new Franchise(1L, "Franchise X");
+
+        when(persistencePort.existsByName("Franchise X")).thenReturn(Mono.just(false));
+
         when(persistencePort.save(franchise)).thenReturn(Mono.just(franchise));
 
         StepVerifier.create(useCase.registerFranchise(franchise))
                 .expectNext(franchise)
                 .verifyComplete();
 
-        verify(persistencePort).existsByName("Franquicia X");
+
+        verify(persistencePort).existsByName("Franchise X");
+
         verify(persistencePort).save(franchise);
     }
 
@@ -43,7 +47,8 @@ class FranchiseUseCaseTest {
     @Test
     void updateFranchiseName_success() {
         Long id = 1L;
-        String newName = "Nueva Franquicia";
+
+        String newName = "new Franchise";
 
         when(persistencePort.existsByName(newName)).thenReturn(Mono.just(false));
         when(persistencePort.existsById(id)).thenReturn(Mono.just(true));
@@ -63,7 +68,9 @@ class FranchiseUseCaseTest {
     @Test
     void updateFranchiseName_franchiseNotFound_shouldThrowError() {
         Long id = 99L;
-        String name = "Nueva";
+
+        String name = "New";
+
 
         when(persistencePort.existsByName(name)).thenReturn(Mono.just(false));
         when(persistencePort.existsById(id)).thenReturn(Mono.just(false));

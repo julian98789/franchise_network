@@ -22,22 +22,23 @@ class ProductUseCaseTest {
     @InjectMocks
     private ProductUseCase useCase;
 
-    private final String validName = "tea";
-
 
 
     @Test
     void createProduct_success() {
-        Product product = new Product(1L, validName);
+        Product product = new Product(1L, "tea");
 
-        when(persistencePort.existsByName(validName)).thenReturn(Mono.just(false));
+        when(persistencePort.existsByName("tea")).thenReturn(Mono.just(false));
+
         when(persistencePort.save(product)).thenReturn(Mono.just(product));
 
         StepVerifier.create(useCase.createProduct(product))
                 .expectNext(product)
                 .verifyComplete();
 
-        verify(persistencePort).existsByName(validName);
+
+        verify(persistencePort).existsByName("tea");
+
         verify(persistencePort).save(product);
     }
 
@@ -45,10 +46,12 @@ class ProductUseCaseTest {
     @Test
     void updateProductName_success() {
         Long id = 1L;
-        String newName = "Nuevo Nombre";
+
+        String newName = "New name";
         Product updated = new Product(id, newName);
 
-        when(persistencePort.findById(id)).thenReturn(Mono.just(new Product(id, "Anterior")));
+        when(persistencePort.findById(id)).thenReturn(Mono.just(new Product(id, "Previous name")));
+
         when(persistencePort.existsByName(newName)).thenReturn(Mono.just(false));
         when(persistencePort.save(updated)).thenReturn(Mono.just(updated));
 
@@ -63,7 +66,9 @@ class ProductUseCaseTest {
 
     @Test
     void updateProductName_nullId_shouldThrowError() {
-        StepVerifier.create(useCase.updateProductName(null, "Nombre"))
+
+        StepVerifier.create(useCase.updateProductName(null, "name"))
+
                 .expectErrorMatches(error ->
                         error instanceof BusinessException &&
                                 error.getMessage().equals(TechnicalMessage.PRODUCT_ID_REQUIRED.getMessage()))
@@ -92,7 +97,9 @@ class ProductUseCaseTest {
     @Test
     void updateProductName_productNotFound_shouldThrowError() {
         Long id = 1L;
-        String newName = "Nuevo Nombre";
+
+        String newName = "New name";
+
 
         when(persistencePort.findById(id)).thenReturn(Mono.empty());
 

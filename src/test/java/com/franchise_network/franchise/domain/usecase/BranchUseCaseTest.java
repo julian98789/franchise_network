@@ -1,6 +1,8 @@
 package com.franchise_network.franchise.domain.usecase;
 
 
+import com.franchise_network.franchise.domain.constants.Constants;
+
 import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.model.Branch;
@@ -30,9 +32,11 @@ class BranchUseCaseTest {
 
     @Test
     void addBranchToFranchise_success() {
-        Branch branch = new Branch(1L, "Sucursal A", 10L);
 
-        when(branchPersistencePort.existsByNameAndFranchiseId("Sucursal A", 10L)).thenReturn(Mono.just(false));
+        Branch branch = new Branch(1L, "Branch A", 10L);
+
+        when(branchPersistencePort.existsByNameAndFranchiseId("Branch A", 10L)).thenReturn(Mono.just(false));
+
         when(franchisePersistencePort.existsById(10L)).thenReturn(Mono.just(true));
         when(branchPersistencePort.save(branch)).thenReturn(Mono.just(branch));
 
@@ -53,7 +57,10 @@ class BranchUseCaseTest {
 
     @Test
     void addBranchToFranchise_nullFranchiseId_shouldThrowError() {
-        Branch branch = new Branch(1L, "Sucursal A", null);
+
+        Branch branch = new Branch(1L, "Branch A", null);
+
+
 
         StepVerifier.create(useCase.addBranchToFranchise(branch))
                 .expectErrorMatches(err -> err instanceof BusinessException &&
@@ -63,9 +70,11 @@ class BranchUseCaseTest {
 
     @Test
     void addBranchToFranchise_branchNameAlreadyExists_shouldThrowError() {
-        Branch branch = new Branch(1L, "Sucursal A", 10L);
 
-        when(branchPersistencePort.existsByNameAndFranchiseId("Sucursal A", 10L)).thenReturn(Mono.just(true));
+        Branch branch = new Branch(1L, "Branch A", 10L);
+
+        when(branchPersistencePort.existsByNameAndFranchiseId("Branch A", 10L)).thenReturn(Mono.just(true));
+
         when(franchisePersistencePort.existsById(10L)).thenReturn(Mono.just(true));
 
         StepVerifier.create(useCase.addBranchToFranchise(branch))
@@ -76,9 +85,11 @@ class BranchUseCaseTest {
 
     @Test
     void addBranchToFranchise_franchiseNotFound_shouldThrowError() {
-        Branch branch = new Branch(1L, "Sucursal A", 10L);
 
-        when(branchPersistencePort.existsByNameAndFranchiseId("Sucursal A", 10L)).thenReturn(Mono.just(false));
+        Branch branch = new Branch(1L, "Branch A", 10L);
+
+        when(branchPersistencePort.existsByNameAndFranchiseId("Branch A", 10L)).thenReturn(Mono.just(false));
+
         when(franchisePersistencePort.existsById(10L)).thenReturn(Mono.just(false));
 
         StepVerifier.create(useCase.addBranchToFranchise(branch))
@@ -90,8 +101,10 @@ class BranchUseCaseTest {
     @Test
     void updateBranchName_success() {
         Long branchId = 1L;
-        String newName = "Sucursal Actualizada";
-        Branch existing = new Branch(branchId, "Sucursal A", 10L);
+
+        String newName = "Updated Branch";
+        Branch existing = new Branch(branchId, "Branch A", 10L);
+
         Branch updated = new Branch(branchId, newName, 10L);
 
         when(branchPersistencePort.findById(branchId)).thenReturn(Mono.just(existing));
@@ -107,7 +120,9 @@ class BranchUseCaseTest {
     void updateBranchName_nullBranchId_shouldThrowError() {
         when(branchPersistencePort.findById(null)).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.updateBranchName(null, "Nuevo Nombre"))
+
+        StepVerifier.create(useCase.updateBranchName(null, "new name"))
+
                 .expectErrorMatches(err -> err instanceof BusinessException &&
                         err.getMessage().equals(TechnicalMessage.BRANCH_ID_REQUIRED.getMessage()))
                 .verify();
@@ -127,11 +142,35 @@ class BranchUseCaseTest {
     void updateBranchName_branchNotFound_shouldThrowError() {
         when(branchPersistencePort.findById(1L)).thenReturn(Mono.empty());
 
-        StepVerifier.create(useCase.updateBranchName(1L, "Nuevo Nombre"))
+
+        StepVerifier.create(useCase.updateBranchName(1L, "new name"))
+
                 .expectErrorMatches(err -> err instanceof BusinessException &&
                         err.getMessage().equals(TechnicalMessage.BRANCH_NOT_FOUND.getMessage()))
                 .verify();
     }
+
+    @Test
+    void addBranchToFranchise_branchNameTooLong_shouldThrowError() {
+        String longName = "A".repeat(Constants.MAX_BRANCH_NAME_LENGTH + 1);
+        Branch branch = new Branch(1L, longName, 10L);
+
+        StepVerifier.create(useCase.addBranchToFranchise(branch))
+                .expectErrorMatches(err -> err instanceof BusinessException &&
+                        err.getMessage().equals(TechnicalMessage.INVALID_BRANCH_NAME.getMessage()))
+                .verify();
+    }
+
+    @Test
+    void addBranchToFranchise_branchNameIsBlank_shouldThrowError() {
+        Branch branch = new Branch(1L, "   ", 10L);
+
+        StepVerifier.create(useCase.addBranchToFranchise(branch))
+                .expectErrorMatches(err -> err instanceof BusinessException &&
+                        err.getMessage().equals(TechnicalMessage.INVALID_BRANCH_NAME.getMessage()))
+                .verify();
+    }
+
 
 
 

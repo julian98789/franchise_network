@@ -1,6 +1,9 @@
 package com.franchise_network.franchise.domain.usecase;
 
 import com.franchise_network.franchise.domain.api.IProductServicePort;
+
+import com.franchise_network.franchise.domain.constants.Constants;
+
 import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.model.Product;
@@ -39,7 +42,9 @@ public class ProductUseCase implements IProductServicePort {
     }
 
     private Mono<Void> validateProductName(String name) {
-        if (name == null || name.isBlank() || name.length() > 100) {
+
+        if (name == null || name.isBlank() || name.length() > Constants.MAX_PRODUCT_NAME_LENGTH) {
+
             return Mono.error(new BusinessException(TechnicalMessage.INVALID_PRODUCT_NAME));
         }
         return Mono.empty();
