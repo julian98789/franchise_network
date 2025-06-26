@@ -175,15 +175,16 @@ public class BranchProductHandler {
     }
 
 
-
-
-    private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, TechnicalMessage error, List<ErrorDTO> errors) {
-        APIResponse apiErrorResponse = APIResponse.builder()
-                .code(error.getCode())
-                .message(error.getMessage())
-                .date(Instant.now().toString())
-                .errors(errors)
-                .build();
-        return ServerResponse.status(httpStatus).bodyValue(apiErrorResponse);
+    private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, TechnicalMessage error,
+                                                    List<ErrorDTO> errors) {
+        return Mono.defer(() -> {
+            APIResponse apiErrorResponse = APIResponse.builder()
+                    .code(error.getCode())
+                    .message(error.getMessage())
+                    .date(Instant.now().toString())
+                    .errors(errors)
+                    .build();
+            return ServerResponse.status(httpStatus).bodyValue(apiErrorResponse);
+        });
     }
 }
