@@ -34,9 +34,9 @@ class ProductHandlerTest {
     void createProduct_success() {
         ServerRequest request = mock(ServerRequest.class);
         ProductDTO dto = new ProductDTO();
-        dto.setName("Café");
+        dto.setName("Coffee");
 
-        Product product = new Product(1L, "Café");
+        Product product = new Product(1L, "Coffee");
 
         when(request.bodyToMono(ProductDTO.class)).thenReturn(Mono.just(dto));
         when(mapper.toModel(dto)).thenReturn(product);
@@ -51,10 +51,10 @@ class ProductHandlerTest {
     void createProduct_businessException() {
         ServerRequest request = mock(ServerRequest.class);
         ProductDTO dto = new ProductDTO();
-        dto.setName("Duplicado");
+        dto.setName("Duplicate");
 
         when(request.bodyToMono(ProductDTO.class)).thenReturn(Mono.just(dto));
-        when(mapper.toModel(dto)).thenReturn(new Product(null, "Duplicado"));
+        when(mapper.toModel(dto)).thenReturn(new Product(null, "Duplicate"));
         when(service.createProduct(any()))
                 .thenReturn(Mono.error(new BusinessException(TechnicalMessage.INVALID_PRODUCT_NAME)));
 
@@ -67,10 +67,10 @@ class ProductHandlerTest {
     void createProduct_technicalException() {
         ServerRequest request = mock(ServerRequest.class);
         ProductDTO dto = new ProductDTO();
-        dto.setName("Técnico");
+        dto.setName("Technical");
 
         when(request.bodyToMono(ProductDTO.class)).thenReturn(Mono.just(dto));
-        when(mapper.toModel(dto)).thenReturn(new Product(null, "Técnico"));
+        when(mapper.toModel(dto)).thenReturn(new Product(null, "Technical"));
         when(service.createProduct(any()))
                 .thenReturn(Mono.error(new TechnicalException(TechnicalMessage.INTERNAL_ERROR)));
 
@@ -83,12 +83,12 @@ class ProductHandlerTest {
     void createProduct_unexpectedException() {
         ServerRequest request = mock(ServerRequest.class);
         ProductDTO dto = new ProductDTO();
-        dto.setName("Error inesperado");
+        dto.setName("Unexpected error");
 
         when(request.bodyToMono(ProductDTO.class)).thenReturn(Mono.just(dto));
-        when(mapper.toModel(dto)).thenReturn(new Product(null, "Error inesperado"));
+        when(mapper.toModel(dto)).thenReturn(new Product(null, "Unexpected error"));
         when(service.createProduct(any()))
-                .thenReturn(Mono.error(new RuntimeException("Falla general")));
+                .thenReturn(Mono.error(new RuntimeException("General failure")));
 
         StepVerifier.create(handler.createProduct(request))
                 .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
@@ -97,9 +97,9 @@ class ProductHandlerTest {
     @Test
     void updateProductName_success() {
         ServerRequest request = mock(ServerRequest.class);
-        UpdateProductNameDTO dto = new UpdateProductNameDTO("Nuevo Nombre");
+        UpdateProductNameDTO dto = new UpdateProductNameDTO("new name");
         Long productId = 1L;
-        Product updated = new Product(productId, "Nuevo Nombre");
+        Product updated = new Product(productId, "new name");
 
         when(request.pathVariable("productId")).thenReturn(productId.toString());
         when(request.bodyToMono(UpdateProductNameDTO.class)).thenReturn(Mono.just(dto));
@@ -113,7 +113,7 @@ class ProductHandlerTest {
     @Test
     void updateProductName_businessException() {
         ServerRequest request = mock(ServerRequest.class);
-        UpdateProductNameDTO dto = new UpdateProductNameDTO("Duplicado");
+        UpdateProductNameDTO dto = new UpdateProductNameDTO("Duplicate");
         Long productId = 1L;
 
         when(request.pathVariable("productId")).thenReturn(productId.toString());
@@ -129,7 +129,7 @@ class ProductHandlerTest {
     @Test
     void updateProductName_technicalException() {
         ServerRequest request = mock(ServerRequest.class);
-        UpdateProductNameDTO dto = new UpdateProductNameDTO("Nuevo Nombre");
+        UpdateProductNameDTO dto = new UpdateProductNameDTO("new name");
         Long productId = 1L;
 
         when(request.pathVariable("productId")).thenReturn(productId.toString());
@@ -145,13 +145,13 @@ class ProductHandlerTest {
     @Test
     void updateProductName_unexpectedException() {
         ServerRequest request = mock(ServerRequest.class);
-        UpdateProductNameDTO dto = new UpdateProductNameDTO("Nombre");
+        UpdateProductNameDTO dto = new UpdateProductNameDTO("name");
         Long productId = 1L;
 
         when(request.pathVariable("productId")).thenReturn(productId.toString());
         when(request.bodyToMono(UpdateProductNameDTO.class)).thenReturn(Mono.just(dto));
         when(service.updateProductName(productId, dto.getName()))
-                .thenReturn(Mono.error(new RuntimeException("Error inesperado")));
+                .thenReturn(Mono.error(new RuntimeException("Unexpected error")));
 
         StepVerifier.create(handler.updateProductName(request))
                 .expectNextMatches(response -> response.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR))
