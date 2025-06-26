@@ -45,7 +45,9 @@ public class FranchiseUseCase implements IFranchiseServicePort {
     }
 
     private Mono<Void> validateFranchiseName(String name) {
+
         if (name == null || name.isBlank() || name.length() > Constants.MAX_FRANCHISE_NAME_LENGTH) {
+
             return Mono.error(new BusinessException(TechnicalMessage.INVALID_FRANCHISE_NAME));
         }
         return Mono.empty();

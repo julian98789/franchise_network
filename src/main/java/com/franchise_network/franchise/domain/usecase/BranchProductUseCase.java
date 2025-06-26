@@ -1,7 +1,9 @@
 package com.franchise_network.franchise.domain.usecase;
 
 import com.franchise_network.franchise.domain.api.IBranchProductServicePort;
+
 import com.franchise_network.franchise.domain.constants.Constants;
+
 import com.franchise_network.franchise.domain.enums.TechnicalMessage;
 import com.franchise_network.franchise.domain.exceptions.BusinessException;
 import com.franchise_network.franchise.domain.exceptions.TechnicalException;
@@ -103,7 +105,9 @@ public class BranchProductUseCase implements IBranchProductServicePort {
         if (stock == null) {
             return Mono.error(new BusinessException(TechnicalMessage.STOCK_REQUIRED));
         }
+
         if (stock < Constants.MINIMUM_STOCK_QUANTITY) {
+
             return Mono.error(new BusinessException(TechnicalMessage.STOCK_CANNOT_BE_NEGATIVE));
         }
 

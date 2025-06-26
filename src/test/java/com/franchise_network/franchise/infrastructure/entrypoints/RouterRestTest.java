@@ -1,6 +1,8 @@
 package com.franchise_network.franchise.infrastructure.entrypoints;
 
+
 import com.franchise_network.franchise.infrastructure.entrypoints.handler.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +13,9 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+
 import static org.mockito.Mockito.when;
+
 
 @ExtendWith(MockitoExtension.class)
 class RouterRestTest {
@@ -28,6 +32,7 @@ class RouterRestTest {
     @Mock
     private BranchProductHandler branchProductHandler;
 
+
     @Mock
     private HealthCheckHandler healthCheckHandler;
 
@@ -37,7 +42,9 @@ class RouterRestTest {
     void setUp() {
         RouterRest routerRest = new RouterRest();
         webTestClient = WebTestClient.bindToRouterFunction(
+
                 routerRest.routerFunction(franchiseHandler, branchHandler, productHandler, branchProductHandler,healthCheckHandler)
+
         ).build();
 
 
@@ -122,6 +129,7 @@ class RouterRestTest {
                 .exchange()
                 .expectStatus().isOk();
     }
+
     @Test
     void testHealthCheckRoute() {
         when(healthCheckHandler.health(any())).thenReturn(ServerResponse.ok().build());
@@ -130,5 +138,6 @@ class RouterRestTest {
                 .exchange()
                 .expectStatus().isOk();
     }
+
 
 }
