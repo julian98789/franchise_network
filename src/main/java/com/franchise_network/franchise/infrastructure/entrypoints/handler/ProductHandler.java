@@ -103,13 +103,16 @@ public class ProductHandler {
 
 
 
-    private Mono<ServerResponse> buildErrorResponse(HttpStatus status, TechnicalMessage code, List<ErrorDTO> errors) {
-        return ServerResponse.status(status)
-                .bodyValue(APIResponse.builder()
-                        .code(code.getCode())
-                        .message(code.getMessage())
-                        .date(Instant.now().toString())
-                        .errors(errors)
-                        .build());
+    private Mono<ServerResponse> buildErrorResponse(HttpStatus httpStatus, TechnicalMessage error,
+                                                    List<ErrorDTO> errors) {
+        return Mono.defer(() -> {
+            APIResponse apiErrorResponse = APIResponse.builder()
+                    .code(error.getCode())
+                    .message(error.getMessage())
+                    .date(Instant.now().toString())
+                    .errors(errors)
+                    .build();
+            return ServerResponse.status(httpStatus).bodyValue(apiErrorResponse);
+        });
     }
 }
