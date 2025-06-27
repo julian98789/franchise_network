@@ -1,4 +1,4 @@
-package com.franchise_network.franchise.config;
+package com.franchise_network.franchise.application.config;
 
 import com.franchise_network.franchise.domain.api.IBranchProductServicePort;
 import com.franchise_network.franchise.domain.api.IBranchServicePort;
